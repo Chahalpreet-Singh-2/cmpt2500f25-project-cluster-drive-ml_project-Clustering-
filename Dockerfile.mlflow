@@ -1,0 +1,24 @@
+# Dockerfile.mlflow
+FROM python:3.12-slim
+
+WORKDIR /mlflow
+
+# Install MLflow and optional MySQL connector
+RUN pip install --no-cache-dir mlflow pymysql
+
+# Where MLflow will store metadata and artifacts inside the container
+ENV MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow.db
+ENV MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
+
+RUN mkdir -p /mlflow/artifacts
+
+# Expose MLflow UI port
+EXPOSE 5001
+
+# Start MLflow server
+CMD ["mlflow", "server", \
+     "--backend-store-uri", "sqlite:///mlflow.db", \
+     "--default-artifact-root", "/mlflow/artifacts", \
+     "--host", "0.0.0.0", \
+     "--port", "5001",\
+     "--allowed-hosts", ""]

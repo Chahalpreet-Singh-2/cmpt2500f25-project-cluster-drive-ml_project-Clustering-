@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: mlflow
+    ports:
+      - "5001:5001"          # host:container
+    volumes:
+      # Persist MLflow artifacts and DB on your host machine
+      - ./mlflow_artifacts:/mlflow/artifacts
+    environment:
+    - MLFLOW_SERVER_ALLOWED_HOSTS=*
+    networks:
+      - ml-network
+
+  ml-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlapp
+    container_name: ml-app
+    depends_on:
+      - mlflow              # ensure mlflow starts first
+    environment:
+      # MLflow tracking URI inside the Docker network
+      - MLFLOW_TRACKING_URI=http://mlflow:5001
+      # Log directory inside the container (matches Dockerfile)
+      - LOG_DIR=/app/logs
+    volumes:
+      # Mount data from your host (recommended for bigger datasets)
+      - ./data:/app/data
+      # Persist logs outside the container
+      - ./logs:/app/logs
+    ports:
+      - "5001:5000"         # host:container for your API
+    networks:
+      - ml-network
+
+networks:
+  ml-network:
+    driver: bridge

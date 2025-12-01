@@ -1,0 +1,35 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Data and models
+data/processed/
+models/
+!data/.gitkeep
+!models/.gitkeep
+
+# DVC cache
+.dvc/cache/
+# MLflow
+mlruns/
+mlflow-artifacts/
+mlartifacts/
+mlflow.db*
+.mlflow/
+logs/
+*.log
+
+# VSCode / Codespaces misc
+.vscode/
+.devcontainer/data/
+mlruns/
+mlruns_lab2/
+models/
+htmlcov/
+logs/
+mlflow_artifacts/
+venv/
+.venv/

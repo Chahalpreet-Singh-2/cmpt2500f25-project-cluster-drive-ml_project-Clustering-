@@ -1,0 +1,8 @@
+input_file: 
+  - CBB_Listings_1.csv
+  - CBB_Listings_2.csv
+  - CBB_Listings_3.csv
+  - CBB_Listings_4.csv
+iqr_trim_columns: [price, mileage, days_on_market]
+coords_file: POSTAL_CODE.csv
+out_parquet: data/processed/final_features.parquet

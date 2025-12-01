@@ -1,0 +1,17 @@
+model_path: models/kprototypes_model.joblib
+in_parquet: data/processed/final_features.parquet
+out_csv: data/processed/predictions.csv
+required_features:
+  - FSA_Code
+  - make
+  - price
+  - Region
+  - Most_sold_brand
+  - Average_mileage
+  - Average_price
+  - FSA_Latitude
+  - FSA_Longitude
+  - Region_vehicle_sold
+  - Region_dealerships
+  - Most_sold_month
+
