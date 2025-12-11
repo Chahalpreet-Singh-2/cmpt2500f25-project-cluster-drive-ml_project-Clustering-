@@ -1,0 +1,153 @@
+{
+  "id": null,
+  "uid": "ml-api-dashboard",
+  "title": "ML API Monitoring Dashboard",
+  "tags": ["ml", "monitoring", "prometheus"],
+  "timezone": "",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "API Status",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "up{job=\"ml-api\"}",
+          "legendFormat": "API UP",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["last"], "fields": "", "values": false },
+        "colorMode": "value",
+        "textMode": "value"
+      }
+    },
+
+    {
+      "type": "stat",
+      "title": "Total Predictions",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(ml_predictions_total)",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "type": "stat",
+      "title": "Error Rate (2 min)",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(rate(ml_predictions_total{status=\"error\"}[2m])) / sum(rate(ml_predictions_total[2m]))",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "type": "stat",
+      "title": "P95 Latency",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ml_prediction_duration_seconds_bucket[2m])) by (le))",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Memory Usage",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "app_memory_usage_bytes",
+          "legendFormat": "Memory Bytes",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Request Rate (RPS)",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(rate(ml_predictions_total[1m]))",
+          "legendFormat": "RPS",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "type": "timeseries",
+      "title": "Latency Percentiles (p50 / p95 / p99)",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(ml_prediction_duration_seconds_bucket[2m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ml_prediction_duration_seconds_bucket[2m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(ml_prediction_duration_seconds_bucket[2m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ]
+    },
+
+    {
+      "type": "piechart",
+      "title": "Predictions by Result",
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(ml_predictions_total) by (prediction_result)",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "type": "piechart",
+      "title": "Predictions by Status",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(ml_predictions_total) by (status)",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "type": "alertlist",
+      "title": "Active Alerts",
+      "gridPos": { "x": 0, "y": 28, "w": 24, "h": 8 }
+    }
+  ]
+}
