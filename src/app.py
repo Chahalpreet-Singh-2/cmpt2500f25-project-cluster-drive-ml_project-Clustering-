@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request
 from flasgger import Swagger
 import pandas as pd
 import numpy as np
+from prometheus_flask_exporter import PrometheusMetrics
 
 # --- universal imports (works both with `python -m src.app` and `python src/app.py`) ---
 try:
@@ -24,6 +25,17 @@ except ImportError:
 # ------------------------
 app = Flask(__name__)
 swagger = Swagger(app)
+
+# Prometheus metrics setup
+metrics = PrometheusMetrics(app)
+
+# Add application metadata as an info metric
+metrics.info(
+    'app_info',
+    'ML API Information',
+    version='1.0.0',
+    app_name='vehicle-clustering-api'
+)
 
 # ------------------------
 # Feature configuration (from train_config.yaml)
