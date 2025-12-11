@@ -32,3 +32,7 @@ mlflow
 kmodes
 kneed
 pyyaml
+# Monitoring
+prometheus-client==0.21.0
+prometheus-flask-exporter==0.23.1
+psutil==6.1.0
