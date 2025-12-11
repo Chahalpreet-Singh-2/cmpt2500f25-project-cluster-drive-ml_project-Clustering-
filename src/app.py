@@ -286,63 +286,115 @@ cat_cols_loaded = []
 
 @app.route("/v1/predict", methods=["POST"])
 def predict_v1():
-    """
-    Assign a cluster using Model v1 (dummy implementation for API tests).
-    ---
-    tags:
-      - Prediction
-    consumes:
-      - application/json
-    """
-    json_data = request.get_json()
+    import time
+    start_time = time.time()   # Start latency timer
+    model_version = "v1"
 
+    json_data = request.get_json()
     if not json_data:
+        # Record missing input
+        prediction_counter.labels(
+            model_version=model_version,
+            prediction_result='no_input',
+            status='error'
+        ).inc()
         return jsonify({"error": "No input data provided"}), 400
 
     is_batch = isinstance(json_data, list)
     data_list = json_data if is_batch else [json_data]
 
-    # Validate each item
+    # Validation
     for item in data_list:
         error_msg, status_code = validate_input(item)
         if error_msg:
+            prediction_counter.labels(
+                model_version=model_version,
+                prediction_result='validation_error',
+                status='error'
+            ).inc()
             return jsonify({"error": error_msg}), status_code
 
-    # ✅ No errors: return dummy cluster assignments
-    # Just return cluster 0 for all records; tests don't care about the actual value.
-    results = [{"cluster": 0, "model_version": "v1"} for _ in data_list]
+    try:
+        # SUCCESS → dummy cluster results
+        results = [{"cluster": 0, "model_version": "v1"} for _ in data_list]
 
-    return jsonify(results if is_batch else results[0])
+        # Record successful predictions
+        for r in results:
+            prediction_counter.labels(
+                model_version=model_version,
+                prediction_result='prediction',
+                status='success'
+            ).inc()
+
+        # Record latency
+        duration = time.time() - start_time
+        prediction_latency.labels(model_version=model_version).observe(duration)
+
+        return jsonify(results if is_batch else results[0]), 200
+
+    except Exception as e:
+        # Record exceptions
+        prediction_counter.labels(
+            model_version=model_version,
+            prediction_result='error',
+            status='error'
+        ).inc()
+        raise
 
 @app.route("/v2/predict", methods=["POST"])
 def predict_v2():
-    """
-    Assign a cluster using Model v2 (dummy implementation for API tests).
-    ---
-    tags:
-      - Prediction
-    consumes:
-      - application/json
-    """
-    json_data = request.get_json()
+    import time
+    start_time = time.time()
+    model_version = "v2"
 
+    json_data = request.get_json()
     if not json_data:
+        prediction_counter.labels(
+            model_version=model_version,
+            prediction_result='no_input',
+            status='error'
+        ).inc()
         return jsonify({"error": "No input data provided"}), 400
 
     is_batch = isinstance(json_data, list)
     data_list = json_data if is_batch else [json_data]
 
-    # Validate each item
+    # Validation
     for item in data_list:
         error_msg, status_code = validate_input(item)
         if error_msg:
+            prediction_counter.labels(
+                model_version=model_version,
+                prediction_result='validation_error',
+                status='error'
+            ).inc()
             return jsonify({"error": error_msg}), status_code
 
-    # ✅ No errors: return dummy cluster assignments
-    results = [{"cluster": 0, "model_version": "v2"} for _ in data_list]
-    return jsonify(results if is_batch else results[0])
+    try:
+        results = [{"cluster": 0, "model_version": "v2"} for _ in data_list]
 
+        # Successful prediction count
+        for r in results:
+            prediction_counter.labels(
+                model_version=model_version,
+                prediction_result='prediction',
+                status='success'
+            ).inc()
 
+        # Latency recording
+        duration = time.time() - start_time
+        prediction_latency.labels(model_version=model_version).observe(duration)
+
+        return jsonify(results if is_batch else results[0]), 200
+
+    except Exception as e:
+        prediction_counter.labels(
+            model_version=model_version,
+            prediction_result='error',
+            status='error'
+        ).inc()
+        raise
+        
 @app.route("/", methods=["GET"])
 def root():
     return jsonify(
