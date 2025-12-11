@@ -37,6 +37,31 @@ metrics.info(
     app_name='vehicle-clustering-api'
 )
 
+# ----------------------------------------
+# Custom ML Metrics (Step 3)
+# ----------------------------------------
+from prometheus_client import Counter, Histogram, Gauge
+
+# Counter: Track total predictions with labels
+prediction_counter = Counter(
+    'ml_predictions_total',
+    'Total number of predictions made',
+    ['model_version', 'prediction_result', 'status']
+)
+
+# Histogram: Track prediction latency
+prediction_latency = Histogram(
+    'ml_prediction_duration_seconds',
+    'Time spent processing prediction requests',
+    ['model_version'],
+    buckets=[0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+)
+
+# Gauges: Track system state
+memory_usage_gauge = Gauge('app_memory_usage_bytes', 'Memory usage of the application')
+cpu_usage_gauge = Gauge('app_cpu_usage_percent', 'CPU usage percentage')
+model_loaded_gauge = Gauge('model_loaded', 'Whether models are loaded', ['model_version'])
+
 # ------------------------
 # Feature configuration (from train_config.yaml)
 # ------------------------
