@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile.mlflow
     container_name: mlflow
     ports:
-      - "5001:5001"          # host:container
+      - "5000:5000"          # host:container
     volumes:
       # Persist MLflow artifacts and DB on your host machine
       - ./mlflow_artifacts:/mlflow/artifacts
