@@ -1,21 +1,28 @@
 version: '3.9'
 
 services:
+  # =========================
+  # MLflow Tracking Server
+  # =========================
   mlflow:
     build:
       context: .
       dockerfile: Dockerfile.mlflow
     container_name: mlflow
     ports:
-      - "5000:5000"          # host:container
+      - "5001:5001"          # host:container  (MLflow UI on localhost:5001)
     volumes:
       # Persist MLflow artifacts and DB on your host machine
       - ./mlflow_artifacts:/mlflow/artifacts
     environment:
-    - MLFLOW_SERVER_ALLOWED_HOSTS=*
+      - MLFLOW_SERVER_ALLOWED_HOSTS=*
     networks:
       - ml-network
+    restart: unless-stopped
 
+  # =========================
+  # ML API (Flask app)
+  # =========================
   ml-app:
     build:
       context: .
@@ -28,16 +35,74 @@ services:
       - MLFLOW_TRACKING_URI=http://mlflow:5001
       # Log directory inside the container (matches Dockerfile)
       - LOG_DIR=/app/logs
+      - PORT=5000
     volumes:
       # Mount data from your host (recommended for bigger datasets)
       - ./data:/app/data
       # Persist logs outside the container
       - ./logs:/app/logs
     ports:
-      - "5001:5000"         # host:container for your API
+      - "5000:5000"         # host:container for your API (localhost:5000)
     networks:
       - ml-network
+    restart: unless-stopped
 
+  # =========================
+  # Prometheus – Metrics
+  # =========================
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - ml-network
+    depends_on:
+      - ml-app
+    restart: unless-stopped
+
+  # =========================
+  # Grafana – Dashboards
+  # =========================
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    networks:
+      - ml-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+# =========================
+# Network & Volumes
+# =========================
 networks:
   ml-network:
     driver: bridge
+
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
