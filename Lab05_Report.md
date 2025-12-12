@@ -24,7 +24,7 @@ Group Members:  1. Chahalpreet Singh : 3096522
                                                                   * Performance issues
                                                                   * Resource consumption
 
- # 2.  How Monitoring Helps in ML Systems :-
+ # 2. How Monitoring Helps in ML Systems :-
  a) Monitoring is essential in ML systems because models can drift, degrade, or fail silently.
  b) Prometheus + Grafana helps with: * Detecting spikes in error rate
                                      * Identifying slow predictions
@@ -34,4 +34,19 @@ Group Members:  1. Chahalpreet Singh : 3096522
                                      * Understanding resource usage (CPU / RAM)
   With these visual dashboards in Grafana, engineers can quickly understand system status and respond before end users are impacted.
    
+ # 3 Challenges Encountered and their solutions:- 
+ a) Challenge 1 :- Flask endpoint duplication error
+    Solution:- Removed the duplicate /health endpoint. After restarting Docker Compose, the API started correctly.
 
+  b) Challenge 2 :- The service kept restarting because Prometheus metrics were not initialized correctly.
+     Solution:- Copied the exact Prometheus instrumentation setup from lab instructions and ensured all counters, histograms, and gauges had unique names.
+
+  c) Challenge 3 :- At first, no data appeared in Prometheus UI.
+     Solution:- Verified port 5000 was forwarded-mapping, scrape_configs in prometheus.yml used ml-app:5000 and generated traffic using curl loops.
+
+  d) Challenege 4:- The DemoHighErrorCount alert didn’t trigger at first.
+     Solution:- Ensured to sent multiple invalid prediction requests and waited the required 10–15 seconds.
+
+  # Conclusion:- 
+  This lab demonstrated the importance of monitoring in ML systems. By adding Prometheus metrics, configuring alerts, and visualizing results in Grafana, we created a fully observable ML API that can detect errors, performance issues, and failures proactively.
+ 
